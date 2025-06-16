@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Ride History - RideShare{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-clock-history me-2 text-primary"></i>Ride History
+                    </h3>
+                    <p class="text-muted mb-0">Your complete ride history</p>
+                </div>
+                <div class="card-body">
+                    {% if rides %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Route</th>
+                                        {% if current_user.role == 'rider' %}
+                                            <th>Driver</th>
+                                        {% else %}
+                                            <th>Rider</th>
+                                        {% endif %}
+                                        <th>Distance</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ride in rides %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ ride.requested_at.strftime('%m/%d/%Y') }}</div>
+                                                <small class="text-muted">{{ ride.requested_at.strftime('%I:%M %p') }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="route-info">
+                                                    <div class="pickup">
+                                                        <i class="bi bi-geo-alt text-success me-1"></i>
+                                                        <small>{{ ride.pickup_address[:30] }}{% if ride.pickup_address|length > 30 %}...{% endif %}</small>
+                                                    </div>
+                                                    <div class="dropoff">
+                                                        <i class="bi bi-flag text-danger me-1"></i>
+                                                        <small>{{ ride.dropoff_address[:30] }}{% if ride.dropoff_address|length > 30 %}...{% endif %}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if current_user.role == 'rider' %}
+                                                    {% if ride.driver %}
+                                                        <div class="d-flex align-items-center">
+                                                            {% if ride.driver.profile_image_url %}
+                                                                <img src="{{ ride.driver.profile_image_url }}" 
+                                                                     alt="Driver" 
+                                                                     class="rounded-circle me-2" 
+                                                                     width="32" height="32"
+                                                                     style="object-fit: cover;">
+                                                            {% else %}
+                                                                <i class="bi bi-person-circle me-2"></i>
+                                                            {% endif %}
+                                                            <div>
+                                                                <div class="fw-bold">{{ ride.driver.first_name or 'Driver' }}</div>
+                                                                <small class="text-muted">★ {{ "%.1f"|format(ride.driver.rating) }}</small>
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="text-muted">Not assigned</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <div class="d-flex align-items-center">
+                                                        {% if ride.rider.profile_image_url %}
+                                                            <img src="{{ ride.rider.profile_image_url }}" 
+                                                                 alt="Rider" 
+                                                                 class="rounded-circle me-2" 
+                                                                 width="32" height="32"
+                                                                 style="object-fit: cover;">
+                                                        {% else %}
+                                                            <i class="bi bi-person-circle me-2"></i>
+                                                        {% endif %}
+                                                        <div>
+                                                            <div class="fw-bold">{{ ride.rider.first_name or 'Rider' }}</div>
+                                                            <small class="text-muted">★ {{ "%.1f"|format(ride.rider.rating) }}</small>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">{{ ride.distance_km }}</span> km
+                                                <br>
+                                                <small class="text-muted">{{ ride.estimated_duration }} min</small>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">${{ "%.2f"|format(ride.price) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if ride.status == 'completed' else 'warning' if ride.status == 'in_progress' else 'primary' if ride.status == 'accepted' else 'danger' if ride.status == 'cancelled' else 'secondary' }}">
+                                                    {{ ride.status.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ url_for('ride_details', ride_id=ride.id) }}" 
+                                                       class="btn btn-outline-secondary">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    {% if ride.status == 'completed' and ride.payment and ride.payment.status == 'completed' %}
+                                                        <a href="{{ url_for('download_receipt', ride_id=ride.id) }}" 
+                                                           class="btn btn-outline-primary">
+                                                            <i class="bi bi-download"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-clock-history display-1 text-muted"></i>
+                            <h5 class="mt-3 text-muted">No rides in your history</h5>
+                            <p class="text-muted">Your completed rides will appear here</p>
+                            {% if current_user.role == 'rider' %}
+                                <a href="{{ url_for('book_ride') }}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Book Your First Ride
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

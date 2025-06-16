@@ -1,0 +1,131 @@
+Prompt: Build a Production-Ready Ride-Sharing App
+You are a full-stack AI software engineer. Build a production-ready MVP of a ride-sharing platform, similar to Uber or InDrive, using modern tools. Follow these detailed functional and technical requirements:
+
+🧩 Tech Stack
+Backend: Python using FastAPI (production-grade REST API)
+
+Environment: UV-managed Python environment (uv for dependency + task running)
+
+Containerization: Docker (single-container deployment)
+
+Frontend: Next.js with Tailwind CSS (responsive, modern UI)
+
+Database: PostgreSQL (schema as described below)
+
+AI Agents:
+
+Use OpenAI Agent SDK to orchestrate all app workflows
+
+Integrate Google Gemini via LiteLLM for smart task reasoning
+
+Integrations:
+
+Google Maps API for real-time distance and route tracking
+
+Stripe or Razorpay for real, secure payments
+
+ReportLab for generating PDF receipts
+
+🧠 Agent Workflows to Implement
+Use OpenAI Agent SDK for the following:
+
+Registration Validator: Enforce user roles and input correctness
+
+Ride Matcher: Assign drivers based on availability (mocked)
+
+Pricing Estimator: Calculate fare dynamically using:
+
+Base fare: $5.00
+
+Per kilometer: $1.50
+
+Per minute: $0.30
+
+Payment Handler: Process payment through Stripe/Razorpay
+
+Receipt Generator: Create downloadable receipts (PDF + text)
+
+🧾 Functional Requirements
+User Registration
+
+Roles: Rider / Driver
+
+Inputs: Name, email, password, vehicle info (driver only)
+
+Validate roles and enforce unique emails
+
+Ride Booking
+
+Inputs: Pickup and drop-off points
+
+Auto-assign driver via agent
+
+Log ride with fare, driver ID, estimated time/distance
+
+Dynamic Pricing
+
+Calculate price based on mock or real Google Maps API distances
+
+Store pricing metadata in DB
+
+Payments & Receipts
+
+Real payment gateway (Stripe/Razorpay)
+
+Generate downloadable receipt (text + PDF)
+
+💾 Database Schema (PostgreSQL)
+sql
+Copy
+Edit
+users(id, name, email, password, role, vehicle)
+rides(id, rider_id, driver_id, pickup, dropoff, distance, time, price, status)
+payments(id, ride_id, rider_id, driver_id, amount, status, timestamp)
+🛠 API Endpoints to Implement
+POST /api/register → Create user
+
+POST /api/request_ride → Rider requests ride
+
+POST /api/pay_and_receipt → Process payment and generate receipt
+
+Optional: Add endpoints for viewing ride history, receipts, driver dashboard
+
+🚀 Deployment Instructions
+Use uv and Docker for easy containerized deployment:
+
+bash
+Copy
+Edit
+uv pip install -r requirements.txt
+uv run python main.py
+docker build -t ride-sharing-app .
+docker run -p 8000:8000 --env-file .env ride-sharing-app
+🧪 Requirements for the Final Product
+Fully functional MVP
+
+AI Agent logic fully integrated
+
+Real APIs (Google Maps + Payment) connected
+
+Responsive frontend (Next.js + Tailwind)
+
+Containerized and deployable with Docker
+
+Secure .env handling for API keys
+
+Code should follow clean architecture and use modular services
+
+✅ Deliverables
+Source code (backend, frontend)
+
+Dockerfile and .env.example
+
+Readme with setup instructions
+
+Sample data (users, rides)
+
+Screenshots or screen recordings (optional)
+
+PDF receipt templates
+
+API key placeholders for Google Maps, Stripe, and OpenAI

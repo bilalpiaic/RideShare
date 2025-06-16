@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Ride Details - RideShare{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="bi bi-car-front me-2 text-primary"></i>Ride #{{ ride.id }}
+                            </h4>
+                            <small class="text-muted">{{ ride.requested_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                        </div>
+                        <span class="badge bg-{{ 'success' if ride.status == 'completed' else 'warning' if ride.status == 'in_progress' else 'primary' if ride.status == 'accepted' else 'danger' if ride.status == 'cancelled' else 'secondary' }} fs-6">
+                            {{ ride.status.title() }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Route Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="bi bi-geo-alt-fill text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Pickup Location</h6>
+                                    <p class="text-muted mb-0">{{ ride.pickup_address }}</p>
+                                    {% if ride.pickup_lat and ride.pickup_lng %}
+                                        <small class="text-muted">{{ "%.6f"|format(ride.pickup_lat) }}, {{ "%.6f"|format(ride.pickup_lng) }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="bi bi-flag-fill text-danger fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Destination</h6>
+                                    <p class="text-muted mb-0">{{ ride.dropoff_address }}</p>
+                                    {% if ride.dropoff_lat and ride.dropoff_lng %}
+                                        <small class="text-muted">{{ "%.6f"|format(ride.dropoff_lat) }}, {{ "%.6f"|format(ride.dropoff_lng) }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trip Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="bi bi-rulers text-primary fs-4"></i>
+                                <div class="mt-2">
+                                    <div class="fw-bold">{{ ride.distance_km }} km</div>
+                                    <small class="text-muted">Distance</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="bi bi-clock text-info fs-4"></i>
+                                <div class="mt-2">
+                                    <div class="fw-bold">{{ ride.estimated_duration }} min</div>
+                                    <small class="text-muted">Duration</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="bi bi-cash-coin text-success fs-4"></i>
+                                <div class="mt-2">
+                                    <div class="fw-bold">${{ "%.2f"|format(ride.price) }}</div>
+                                    <small class="text-muted">Fare</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 border rounded">
+                                <i class="bi bi-person text-warning fs-4"></i>
+                                <div class="mt-2">
+                                    <div class="fw-bold">{{ current_user.role.title() }}</div>
+                                    <small class="text-muted">Your Role</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- People Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-person-circle me-2"></i>Rider</h6>
+                            <div class="d-flex align-items-center">
+                                {% if ride.rider.profile_image_url %}
+                                    <img src="{{ ride.rider.profile_image_url }}" alt="Rider" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <i class="bi bi-person text-white"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ ride.rider.first_name or 'Rider' }} {{ ride.rider.last_name or '' }}</div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-star-fill text-warning"></i> {{ "%.1f"|format(ride.rider.rating) }}
+                                        • {{ ride.rider.total_rides }} rides
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if ride.driver %}
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-car-front me-2"></i>Driver</h6>
+                                <div class="d-flex align-items-center">
+                                    {% if ride.driver.profile_image_url %}
+                                        <img src="{{ ride.driver.profile_image_url }}" alt="Driver" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            <i class="bi bi-person text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ ride.driver.first_name or 'Driver' }} {{ ride.driver.last_name or '' }}</div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-star-fill text-warning"></i> {{ "%.1f"|format(ride.driver.rating) }}
+                                            • {{ ride.driver.total_rides }} rides
+                                        </div>
+                                        {% if ride.driver.vehicle_info %}
+                                            {% set vehicle = ride.driver.vehicle_info | from_json %}
+                                            <div class="text-muted small">
+                                                {{ vehicle.color }} {{ vehicle.make }} {{ vehicle.model }} • {{ vehicle.license_plate }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-hourglass-split me-2"></i>Driver</h6>
+                                <div class="text-muted">
+                                    <div class="d-flex align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                        Looking for nearby drivers...
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Special Notes -->
+                    {% if ride.notes %}
+                        <div class="mb-4">
+                            <h6><i class="bi bi-chat-dots me-2"></i>Special Instructions</h6>
+                            <div class="bg-light p-3 rounded">
+                                {{ ride.notes }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Timeline -->
+                    <div class="mb-4">
+                        <h6><i class="bi bi-clock-history me-2"></i>Ride Timeline</h6>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <div class="fw-bold">Ride Requested</div>
+                                    <div class="text-muted small">{{ ride.requested_at.strftime('%I:%M %p') }}</div>
+                                </div>
+                            </div>
+                            {% if ride.accepted_at %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <div class="fw-bold">Driver Assigned</div>
+                                        <div class="text-muted small">{{ ride.accepted_at.strftime('%I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if ride.started_at %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <div class="fw-bold">Trip Started</div>
+                                        <div class="text-muted small">{{ ride.started_at.strftime('%I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if ride.completed_at %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <div class="fw-bold">Trip Completed</div>
+                                        <div class="text-muted small">{{ ride.completed_at.strftime('%I:%M %p') }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Actions</h6>
+                </div>
+                <div class="card-body">
+                    {% if ride.status == 'pending' and current_user.role == 'driver' %}
+                        <form method="POST" action="{{ url_for('accept_ride', ride_id=ride.id) }}" class="mb-3">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle me-2"></i>Accept This Ride
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if ride.status == 'accepted' and current_user.id == ride.driver_id %}
+                        <form method="POST" action="{{ url_for('update_ride_status', ride_id=ride.id) }}" class="mb-3">
+                            <input type="hidden" name="status" value="in_progress">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-play-circle me-2"></i>Start Trip
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if ride.status == 'in_progress' and current_user.id == ride.driver_id %}
+                        <form method="POST" action="{{ url_for('update_ride_status', ride_id=ride.id) }}" class="mb-3">
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle me-2"></i>Complete Trip
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if ride.status == 'completed' and current_user.id == ride.rider_id and not payment %}
+                        <form method="POST" action="{{ url_for('pay_ride', ride_id=ride.id) }}" class="mb-3">
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-credit-card me-2"></i>Pay ${{ "%.2f"|format(ride.price) }}
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if payment and payment.status == 'completed' %}
+                        <a href="{{ url_for('download_receipt', ride_id=ride.id) }}" class="btn btn-outline-primary w-100 mb-3">
+                            <i class="bi bi-download me-2"></i>Download Receipt
+                        </a>
+                    {% endif %}
+
+                    {% if ride.status in ['pending', 'accepted'] %}
+                        <form method="POST" action="{{ url_for('update_ride_status', ride_id=ride.id) }}" class="mb-3">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Are you sure you want to cancel this ride?')">
+                                <i class="bi bi-x-circle me-2"></i>Cancel Ride
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        {% if current_user.role == 'rider' %}
+                            <a href="{{ url_for('rider_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-house me-2"></i>Back to Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('driver_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-speedometer2 me-2"></i>Back to Dashboard
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('ride_history') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-clock-history me-2"></i>Ride History
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            {% if payment %}
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-muted small">Amount</div>
+                                <div class="fw-bold">${{ "%.2f"|format(payment.amount) }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted small">Status</div>
+                                <span class="badge bg-{{ 'success' if payment.status == 'completed' else 'warning' if payment.status == 'pending' else 'danger' }}">
+                                    {{ payment.status.title() }}
+                                </span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-muted small">Method</div>
+                                <div>{{ payment.payment_method.title() }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted small">Transaction ID</div>
+                                <div class="small">{{ payment.transaction_id }}</div>
+                            </div>
+                        </div>
+                        {% if payment.processed_at %}
+                            <hr>
+                            <div class="text-muted small">Processed</div>
+                            <div>{{ payment.processed_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 1rem;
+    width: 2px;
+    height: calc(100% - 0.5rem);
+    background-color: #dee2e6;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.75rem;
+    top: 0.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.timeline-content {
+    padding-left: 0.5rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Driver Dashboard - RideShare{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="card-title">
+                                <i class="bi bi-speedometer2 me-2 text-primary"></i>
+                                Driver Dashboard
+                            </h1>
+                            <p class="card-text">
+                                Welcome back, {{ current_user.first_name or 'Driver' }}!
+                                <span class="badge bg-{{ 'success' if is_available else 'danger' }} ms-2">
+                                    {{ 'Online' if is_available else 'Offline' }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <form method="POST" action="{{ url_for('toggle_availability') }}" class="d-inline">
+                                <button type="submit" class="btn btn-{{ 'warning' if is_available else 'success' }} btn-lg">
+                                    <i class="bi bi-{{ 'pause-circle' if is_available else 'play-circle' }} me-2"></i>
+                                    Go {{ 'Offline' if is_available else 'Online' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-car-front text-primary display-6"></i>
+                    <h3 class="mt-2">{{ current_user.total_rides }}</h3>
+                    <p class="text-muted mb-0">Total Rides</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-star-fill text-warning display-6"></i>
+                    <h3 class="mt-2">{{ "%.1f"|format(current_user.rating) }}</h3>
+                    <p class="text-muted mb-0">Your Rating</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-clock text-info display-6"></i>
+                    <h3 class="mt-2">{{ pending_rides|length }}</h3>
+                    <p class="text-muted mb-0">Available Rides</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-circle-fill text-{{ 'success' if is_available else 'danger' }} display-6"></i>
+                    <h3 class="mt-2">{{ 'Online' if is_available else 'Offline' }}</h3>
+                    <p class="text-muted mb-0">Status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Available Rides -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock me-2"></i>Available Rides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_rides and is_available %}
+                        <div class="list-group list-group-flush">
+                            {% for ride in pending_rides %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                {{ ride.pickup_address[:40] }}{% if ride.pickup_address|length > 40 %}...{% endif %}
+                                            </div>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-arrow-down me-1"></i>
+                                                {{ ride.dropoff_address[:40] }}{% if ride.dropoff_address|length > 40 %}...{% endif %}
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ ride.distance_km }} km • ${{ "%.2f"|format(ride.price) }}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <form method="POST" action="{{ url_for('accept_ride', ride_id=ride.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-check-circle me-1"></i>Accept
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clock display-4 text-muted"></i>
+                            <h6 class="mt-3 text-muted">
+                                {% if not is_available %}
+                                    You're offline
+                                {% else %}
+                                    No rides available
+                                {% endif %}
+                            </h6>
+                            <p class="text-muted small">
+                                {% if not is_available %}
+                                    Go online to see available rides
+                                {% else %}
+                                    Check back soon for new ride requests
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Rides -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Recent Rides
+                    </h5>
+                    <a href="{{ url_for('ride_history') }}" class="btn btn-outline-secondary btn-sm">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_rides %}
+                        <div class="list-group list-group-flush">
+                            {% for ride in recent_rides %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">
+                                                <i class="bi bi-person me-1"></i>
+                                                {{ ride.rider.first_name or 'Rider' }}
+                                            </div>
+                                            <div class="text-muted small">
+                                                {{ ride.pickup_address[:30] }}{% if ride.pickup_address|length > 30 %}...{% endif %}
+                                                →
+                                                {{ ride.dropoff_address[:30] }}{% if ride.dropoff_address|length > 30 %}...{% endif %}
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ ride.requested_at.strftime('%m/%d %I:%M %p') }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-{{ 'success' if ride.status == 'completed' else 'warning' if ride.status == 'in_progress' else 'primary' if ride.status == 'accepted' else 'secondary' }}">
+                                                {{ ride.status.title() }}
+                                            </span>
+                                            <div class="fw-bold small">${{ "%.2f"|format(ride.price) }}</div>
+                                            <a href="{{ url_for('ride_details', ride_id=ride.id) }}" class="btn btn-outline-secondary btn-sm">
+                                                Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-car-front display-4 text-muted"></i>
+                            <h6 class="mt-3 text-muted">No rides yet</h6>
+                            <p class="text-muted small">Accept your first ride to get started!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}RideShare - Your Ride, Your Way{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold mb-4">
+                        Your Ride, <span class="text-primary">Your Way</span>
+                    </h1>
+                    <p class="lead mb-4">
+                        Connect with reliable drivers in your area. Book rides instantly, 
+                        track your journey, and travel with confidence.
+                    </p>
+                    
+                    {% if not current_user.is_authenticated %}
+                        <div class="d-grid gap-2 d-md-flex">
+                            <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg me-md-2">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Get Started
+                            </a>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <small class="text-muted">
+                                Join thousands of satisfied riders and drivers
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="hero-image text-center">
+                    <i class="bi bi-car-front display-1 text-primary mb-4" style="font-size: 8rem;"></i>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-lightning-charge text-warning fs-3"></i>
+                                    <h6 class="mt-2">Fast Booking</h6>
+                                    <small class="text-muted">Book in seconds</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-shield-check text-success fs-3"></i>
+                                    <h6 class="mt-2">Safe & Secure</h6>
+                                    <small class="text-muted">Verified drivers</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-cash-coin text-info fs-3"></i>
+                                    <h6 class="mt-2">Fair Pricing</h6>
+                                    <small class="text-muted">Transparent rates</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-clock text-primary fs-3"></i>
+                                    <h6 class="mt-2">24/7 Available</h6>
+                                    <small class="text-muted">Always ready</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-dark">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h2 class="fw-bold">How It Works</h2>
+                <p class="text-muted">Simple steps to get you moving</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-geo-alt-fill text-primary display-4"></i>
+                    </div>
+                    <h5>Set Your Location</h5>
+                    <p class="text-muted">Tell us where you are and where you want to go</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-person-check text-success display-4"></i>
+                    </div>
+                    <h5>Get Matched</h5>
+                    <p class="text-muted">We'll connect you with a nearby verified driver</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-car-front text-warning display-4"></i>
+                    </div>
+                    <h5>Enjoy Your Ride</h5>
+                    <p class="text-muted">Sit back and enjoy a comfortable, safe journey</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not current_user.is_authenticated %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="fw-bold mb-4">Ready to Get Started?</h2>
+                <p class="lead mb-4">
+                    Join our community of riders and drivers today. 
+                    Experience the future of transportation.
+                </p>
+                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign Up Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

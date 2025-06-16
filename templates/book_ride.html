@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Book a Ride - RideShare{% endblock %}
+
+{% block extra_head %}
+<style>
+    .price-estimate {
+        background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: white;
+        margin-top: 1rem;
+    }
+    
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .location-input {
+        position: relative;
+    }
+    
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    
+    .autocomplete-item {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f8f9fa;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .autocomplete-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    
+    .current-location-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--bs-primary);
+        font-size: 1.2rem;
+        cursor: pointer;
+        z-index: 10;
+    }
+    
+    .driver-marker {
+        color: #28a745;
+        font-size: 1.5rem;
+    }
+    
+    .nearby-drivers {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-plus-circle me-2 text-primary"></i>Book a New Ride
+                    </h3>
+                    <p class="text-muted mb-0">Tell us where you want to go</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="bookRideForm">
+                        <!-- Map Display -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-map me-1"></i>Live Map
+                            </label>
+                            <div id="map"></div>
+                            <div class="form-text">Your location, nearby drivers, and route will appear here</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pickup_address" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>Pickup Location
+                                </label>
+                                <div class="location-input">
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="pickup_address" 
+                                           name="pickup_address" 
+                                           placeholder="Enter pickup address"
+                                           autocomplete="off"
+                                           required>
+                                    <button type="button" class="current-location-btn" id="currentLocationBtn" title="Use current location">
+                                        <i class="bi bi-crosshair"></i>
+                                    </button>
+                                    <div class="autocomplete-dropdown" id="pickupDropdown"></div>
+                                </div>
+                                <div class="form-text">Where should we pick you up?</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="dropoff_address" class="form-label">
+                                    <i class="bi bi-flag me-1"></i>Destination
+                                </label>
+                                <div class="location-input">
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="dropoff_address" 
+                                           name="dropoff_address" 
+                                           placeholder="Enter destination address"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="autocomplete-dropdown" id="dropoffDropdown"></div>
+                                </div>
+                                <div class="form-text">Where are you going?</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nearby Drivers -->
+                        <div class="mb-3">
+                            <div id="nearbyDriversSection" style="display: none;">
+                                <label class="form-label">
+                                    <i class="bi bi-people me-1"></i>Nearby Drivers
+                                </label>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div id="nearbyDriversList" class="nearby-drivers">
+                                            <!-- Driver list will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">
+                                <i class="bi bi-chat-dots me-1"></i>Special Instructions (Optional)
+                            </label>
+                            <textarea class="form-control" 
+                                      id="notes" 
+                                      name="notes" 
+                                      rows="3" 
+                                      placeholder="Any special instructions for your driver?"></textarea>
+                        </div>
+                        
+                        <!-- Price Estimate -->
+                        <div id="priceEstimate" class="price-estimate" style="display: none;">
+                            <h5><i class="bi bi-calculator me-2"></i>Price Estimate</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Base Fare:</span>
+                                        <span id="baseFare">$5.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Distance:</span>
+                                        <span id="distanceCost">$0.00</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Time:</span>
+                                        <span id="timeCost">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between fw-bold border-top pt-2">
+                                        <span>Total:</span>
+                                        <span id="totalPrice">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="button" id="getEstimate" class="btn btn-outline-primary me-md-2">
+                                <i class="bi bi-calculator me-2"></i>Get Price Estimate
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-car-front me-2"></i>Book Ride
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- How it works -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5><i class="bi bi-info-circle me-2"></i>How it works</h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <i class="bi bi-1-circle text-primary fs-3"></i>
+                            <h6 class="mt-2">Book</h6>
+                            <small class="text-muted">Enter your pickup and destination</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="bi bi-2-circle text-success fs-3"></i>
+                            <h6 class="mt-2">Match</h6>
+                            <small class="text-muted">We'll find a nearby driver</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="bi bi-3-circle text-warning fs-3"></i>
+                            <h6 class="mt-2">Ride</h6>
+                            <small class="text-muted">Enjoy your safe journey</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/enhanced_booking.js') }}"></script>
+{% endblock %}
